@@ -1,0 +1,42 @@
+from sqlalchemy import Column, String, Integer, Boolean, Enum
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import create_engine
+import enum
+
+Base = declarative_base()
+
+# Define the Enum class for Post Type
+class PostTypeEnum(enum.Enum):
+    each_invoice = 'Each Invoice'
+    on_demand = 'On Demand'
+    set_up_schedule = 'Set Up Schedule'
+
+# Define the ISDTIntegration model
+class ISDTIntegration(Base):
+    __tablename__ = 'isdt_integration'
+
+    id = Column(Integer, primary_key=True)  # Integer instead of String for ID
+    integration_description = Column(String(255), nullable=False)
+    user_number = Column(String(50), nullable=False)
+    secret_key = Column(String(255), nullable=False)
+    post_type = Column(Enum(PostTypeEnum), nullable=False, default=PostTypeEnum.each_invoice)
+    active = Column(Boolean, default=True)
+
+# Setup the database engine and session
+engine = create_engine('sqlite:///integration.db')
+Base.metadata.create_all(engine)
+
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# Example of creating a new ISDTIntegration entry
+new_integration = ISDTIntegration(
+    integration_description='Test Integration',
+    user_number='12345',
+    secret_key='abcde12345',
+    post_type=PostTypeEnum.on_demand,
+    active=True
+)
+
+session.add(new_integration)
+session.commit()
